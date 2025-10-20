@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  prompt-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    volumes:
+      # Mount .env file (create from .env.example)
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prompt-app.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.prompt-app.tls=true"
+      - "traefik.http.routers.prompt-app.tls.certresolver=letsencrypt"
+
+  # Optional: Add a reverse proxy (uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - prompt-app
+  #   restart: unless-stopped
+
+networks:
+  default:
+    name: prompt-app-network

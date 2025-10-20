@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Dynamic Prompt Template App</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="apple-touch-icon" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-magic"></i> Dynamic Prompt Template Studio</h1>
+                <p>Advanced AI-Powered Educational Content Curation</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="container">
+            
+            <!-- Topic Input Section -->
+            <section class="topic-section">
+                <div class="card topic-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-lightbulb"></i> Choose Your Learning Topic</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="topic-input-group">
+                            <div class="input-wrapper">
+                                <input type="text" id="topicInput" placeholder="Enter any learning topic (e.g., Prompt Engineering)" 
+                                       class="topic-input" value="Prompt Engineering">
+                                <button id="generateBtn" class="btn btn-primary">
+                                    <i class="fas fa-wand-magic-sparkles"></i> Generate Prompt
+                                </button>
+                            </div>
+                            <div class="quick-topics">
+                                <span class="quick-topics-label">Quick Topics:</span>
+                                <div class="topic-chips" id="quickTopics">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API Keys Section -->
+            <section class="api-keys-section">
+                <div class="card api-keys-card">
+                    <div class="card-header collapsible" onclick="toggleSection('apiKeysBody')">
+                        <h3><i class="fas fa-key"></i> API Configuration <span class="optional-badge">Optional</span></h3>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="card-body" id="apiKeysBody" style="display: none;">
+                        <div class="api-keys-grid">
+                            <div class="api-key-group">
+                                <label for="geminiKey">Gemini API Key:</label>
+                                <input type="password" id="geminiKey" placeholder="Your Gemini API key (optional)">
+                                <small>Leave empty to use demo responses</small>
+                            </div>
+                            <div class="api-key-group">
+                                <label for="youtubeKey">YouTube API Key:</label>
+                                <input type="password" id="youtubeKey" placeholder="Your YouTube API key (optional)">
+                                <small>Leave empty to use demo data</small>
+                            </div>
+                        </div>
+                        <button id="updateKeysBtn" class="btn btn-secondary">
+                            <i class="fas fa-save"></i> Update Keys
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quota Status -->
+            <section class="quota-section">
+                <div class="quota-cards" id="quotaCards">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Prompt Display Section -->
+            <section class="prompt-section">
+                <div class="card prompt-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-scroll"></i> Generated Prompt Template</h2>
+                        <div class="prompt-actions">
+                            <button id="copyPromptBtn" class="btn btn-outline">
+                                <i class="fas fa-copy"></i> Copy Prompt
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="prompt-display" id="promptDisplay">
+                            <div class="loading-placeholder">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Click "Generate Prompt" to create a dynamic template for your topic</p>
+                            </div>
+                        </div>
+                        <div class="prompt-metadata" id="promptMetadata" style="display: none;">
+                            <!-- Metadata will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Output Modes Section -->
+            <section class="output-modes-section">
+                <div class="output-mode-tabs">
+                    <button class="tab-btn active" onclick="switchTab('gemini')">
+                        <i class="fas fa-robot"></i> Gemini AI Response
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('youtube')">
+                        <i class="fab fa-youtube"></i> YouTube Analytics
+                    </button>
+                </div>
+
+                <!-- Gemini Output -->
+                <div class="tab-content active" id="geminiTab">
+                    <div class="card output-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-robot"></i> AI-Generated Content Curation</h3>
+                            <button id="queryGeminiBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-play"></i> Generate Response
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="output-display" id="geminiOutput">
+                                <div class="waiting-prompt">
+                                    <i class="fas fa-magic"></i>
+                                    <p>Generate a prompt first, then click "Generate Response" to see AI-curated content</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YouTube Output -->
+                <div class="tab-content" id="youtubeTab">
+                    <div class="card output-card">
+                        <div class="card-header">
+                            <h3><i class="fab fa-youtube"></i> YouTube Video Analytics</h3>
+                            <button id="searchYouTubeBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-search"></i> Search Videos
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="youtube-content" id="youtubeContent">
+                                <div class="waiting-prompt">
+                                    <i class="fab fa-youtube"></i>
+                                    <p>Generate a prompt first, then click "Search Videos" to analyze YouTube content</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="analytics-section" id="analyticsSection" style="display: none;">
+                <div class="analytics-grid">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-pie"></i> Difficulty Distribution</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="difficultyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Top Channels</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="channelsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video Table Section -->
+            <section class="video-table-section" id="videoTableSection" style="display: none;">
+                <div class="card table-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-table"></i> Video Analysis Results</h3>
+                        <div class="table-controls">
+                            <select id="sortSelect" class="sort-select">
+                                <option value="quality_score">Sort by Quality Score</option>
+                                <option value="view_count">Sort by Views</option>
+                                <option value="like_count">Sort by Likes</option>
+                                <option value="published_at">Sort by Date</option>
+                            </select>
+                            <select id="filterSelect" class="filter-select">
+                                <option value="all">All Levels</option>
+                                <option value="Beginner">Beginner Only</option>
+                                <option value="Intermediate">Intermediate Only</option>
+                                <option value="Advanced">Advanced Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="video-table" id="videoTable">
+                                <thead>
+                                    <tr>
+                                        <th>Video</th>
+                                        <th>Channel</th>
+                                        <th>Duration</th>
+                                        <th>Views</th>
+                                        <th>Likes</th>
+                                        <th>Quality Score</th>
+                                        <th>Level</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="videoTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About This App</h4>
+                    <p>Advanced AI-powered tool for generating dynamic prompt templates and curating educational content.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li>Dynamic prompt generation</li>
+                        <li>AI content curation</li>
+                        <li>YouTube analytics</li>
+                        <li>API quota tracking</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Developer - Vicky Kumar (@algsoch)</h4>
+                    <p>I'm a Machine Learning Engineer and Python specialist who builds AI-driven solutions and scalable web tools. I develop and train TensorFlow and PyTorch models—including CNNs on 10,000+ images for multi-class classification—and fine-tune LLMs with Hugging Face and custom pipelines using LangChain.</p>
+                    <div class="social-links">
+                        <a href="https://github.com/algsoch" title="GitHub - Vicky Kumar (algsoch)" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i></a>
+                        <a href="https://linkedin.com/in/algsoch" title="LinkedIn - Vicky Kumar (algsoch)" target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://twitter.com/algsoch" title="Twitter - Vicky Kumar (algsoch)" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.freelancer.ca/u/algsoch" title="Freelancer - Vicky Kumar (algsoch)" target="_blank" rel="noopener noreferrer"><i class="fas fa-briefcase"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Dynamic Prompt Studio by Vicky Kumar (@algsoch). Machine Learning Engineer & Python Specialist - Built for educational and professional development.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

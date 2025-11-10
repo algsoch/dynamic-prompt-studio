@@ -54,6 +54,9 @@ chmod +x deploy/railway.sh
 
 **Cost:** Free tier available, $7/month for always-on
 
+**Keep-Alive for Free Tier:**
+The repository includes a GitHub Actions workflow (`.github/workflows/keep-alive.yml`) that automatically pings your Render service every 14 minutes to prevent it from sleeping. This keeps your free tier service active without manual intervention.
+
 ---
 
 ### 3. 🐳 Docker Hub + Cloud Platforms
@@ -221,6 +224,25 @@ printenv | grep -E "(GEMINI|DISCORD|YOUTUBE)"
 1. **Start with Railway** (free, easy setup)
 2. **Move to Render** (production-ready, custom domain)
 3. **Scale with DigitalOcean/AWS** (high traffic, enterprise)
+
+## 🤖 GitHub Actions
+
+### Keep-Alive Workflow
+The repository includes an automated keep-alive workflow for Render's free tier:
+
+- **Location**: `.github/workflows/keep-alive.yml`
+- **Purpose**: Prevents Render free tier services from sleeping after 15 minutes of inactivity
+- **Schedule**: Automatically pings the service every 14 minutes
+- **Endpoint**: Hits the `/health` endpoint
+- **Manual Trigger**: Can be manually triggered from GitHub Actions tab
+
+**How it works:**
+- GitHub Actions runs on a cron schedule (`*/14 * * * *`)
+- Makes a simple HTTP GET request to your deployed service
+- Logs the response status code
+- Keeps your service warm and responsive
+
+**Note:** This workflow is enabled by default once you push the repository to GitHub.
 
 ## 📞 Support
 

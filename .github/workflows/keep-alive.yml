@@ -1,0 +1,26 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Run every 14 minutes to keep the service alive (Render free tier sleeps after 15 minutes)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Ping Render service
+      run: |
+        echo "Pinging https://prompt-template-studio-v1-0-2.onrender.com/health"
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://prompt-template-studio-v1-0-2.onrender.com/health)
+        echo "Response code: $response"
+        
+        if [ "$response" -eq 200 ]; then
+          echo "✅ Service is alive and responding"
+        else
+          echo "⚠️ Service returned status code: $response"
+        fi

@@ -185,6 +185,14 @@ This is an educational project. For issues:
 2. Verify API keys are correct (if using)
 3. Ensure internet connection for API calls
 
+## Deployment
+
+This project can be deployed to various platforms including Railway, Render, DigitalOcean, Heroku, and more. 
+
+For Render free tier deployments, a GitHub Actions workflow is included (`.github/workflows/keep-alive.yml`) that automatically pings the service every 14 minutes to prevent it from sleeping.
+
+See the [Deployment Guide](deploy/DEPLOYMENT.md) for detailed instructions.
+
 ## License
 
 Built for educational and demonstration purposes. Feel free to modify and extend!

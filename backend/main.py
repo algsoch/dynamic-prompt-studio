@@ -13,12 +13,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv("../.env")
+# Get the directory where this file is located
+_current_dir = Path(__file__).parent
+_root_dir = _current_dir.parent
+load_dotenv(_root_dir / ".env")
 
-from services.prompt_template import PromptTemplateService
-from services.gemini_service import GeminiService
-from services.youtube_service import YouTubeService
-from services.discord_service import DiscordWebhookService
+from backend.services.prompt_template import PromptTemplateService
+from backend.services.gemini_service import GeminiService
+from backend.services.youtube_service import YouTubeService
+from backend.services.discord_service import DiscordWebhookService
 
 app = FastAPI(title="Dynamic Prompt Template App", version="1.0.0")
 
@@ -32,7 +35,8 @@ app.add_middleware(
 )
 
 # Mount static files (frontend directory is one level up)
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+_frontend_dir = _root_dir / "frontend"
+app.mount("/static", StaticFiles(directory=str(_frontend_dir)), name="static")
 
 # Helper functions for smart Discord logging
 def _is_automated_request(user_agent: str, referer: str) -> bool:
@@ -196,7 +200,7 @@ class YouTubeRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
     """Serve the main frontend HTML page"""
-    frontend_path = Path("../frontend/index.html")
+    frontend_path = _root_dir / "frontend" / "index.html"
     if frontend_path.exists():
         return FileResponse(frontend_path)
     return HTMLResponse("<h1>Frontend not found</h1>", status_code=404)

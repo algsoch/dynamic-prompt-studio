@@ -199,7 +199,8 @@ async def health_check():
 async def generate_prompt(request: TopicRequest):
     """Generate a dynamic prompt template for the given topic"""
     try:
-        prompt_data = prompt_service.generate_prompt(request.topic)
+        # Run the synchronous function in a thread pool to avoid blocking
+        prompt_data = await asyncio.to_thread(prompt_service.generate_prompt, request.topic)
         return {
             "success": True,
             "data": prompt_data,

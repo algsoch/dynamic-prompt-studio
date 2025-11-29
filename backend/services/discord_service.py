@@ -233,9 +233,10 @@ class DiscordWebhookService:
         return cleaned
     
     async def _send_webhook(self, payload: dict):
-        """Send payload to Discord webhook"""
+        """Send payload to Discord webhook (non-blocking with short timeout)"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            # Use a short timeout to avoid blocking requests
+            async with httpx.AsyncClient(timeout=3.0) as client:
                 response = await client.post(
                     self.webhook_url,
                     json=payload,
@@ -243,8 +244,8 @@ class DiscordWebhookService:
                 )
                 response.raise_for_status()
         except httpx.TimeoutException:
-            print("Discord webhook timeout")
+            print("Discord webhook timeout (non-critical, continuing)")
         except httpx.HTTPStatusError as e:
-            print(f"Discord webhook HTTP error: {e.response.status_code}")
+            print(f"Discord webhook HTTP error: {e.response.status_code} (non-critical)")
         except Exception as e:
-            print(f"Discord webhook error: {e}")
+            print(f"Discord webhook error: {e} (non-critical)")

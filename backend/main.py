@@ -7,6 +7,7 @@ from typing import Optional, Dict, Any
 import os
 import time
 import traceback
+import asyncio
 from datetime import datetime
 import json
 from pathlib import Path
@@ -78,9 +79,9 @@ async def discord_logging_middleware(request: Request, call_next):
     user_agent = request.headers.get("user-agent", "unknown")
     referer = request.headers.get("referer", "")
     
-    # For the main page visit, log as visitor
+    # For the main page visit, log as visitor (fire and forget - don't block)
     if request.url.path == "/" and request.method == "GET":
-        await discord_service.send_visitor_log(user_ip, user_agent, referer)
+        asyncio.create_task(discord_service.send_visitor_log(user_ip, user_agent, referer))
     
     # Get request body for logging (if applicable)
     request_data = None
@@ -129,13 +130,13 @@ async def discord_logging_middleware(request: Request, call_next):
             media_type="application/json"
         )
         
-        # Log error to Discord
-        await discord_service.send_error_log(
+        # Log error to Discord (fire and forget - don't block response)
+        asyncio.create_task(discord_service.send_error_log(
             str(e), 
             f"{request.method} {request.url.path}",
             user_ip,
             traceback.format_exc()
-        )
+        ))
     
     # Calculate processing time
     processing_time = time.time() - start_time
@@ -160,7 +161,8 @@ async def discord_logging_middleware(request: Request, call_next):
         should_log = _is_user_initiated_request(user_agent, referer)
     
     if should_log:
-        await discord_service.send_request_log(
+        # Fire and forget - don't block the response waiting for Discord
+        asyncio.create_task(discord_service.send_request_log(
             request.method,
             request.url.path,
             user_ip,
@@ -169,7 +171,7 @@ async def discord_logging_middleware(request: Request, call_next):
             response_data,
             request_data,
             processing_time
-        )
+        ))
     
     return response
 

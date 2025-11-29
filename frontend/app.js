@@ -87,9 +87,7 @@ class PromptTemplateApp {
     
     async setDefaultTopic() {
         document.getElementById('topicInput').value = 'Prompt Engineering';
-        // Don't auto-generate on page load to avoid cold start issues on free tier hosting
-        // User can click "Generate Prompt" button when ready
-        // await this.generatePrompt();
+        await this.generatePrompt();
     }
     
     async loadQuickTopics() {

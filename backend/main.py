@@ -101,26 +101,9 @@ async def discord_logging_middleware(request: Request, call_next):
         response = await call_next(request)
         status_code = response.status_code
         
-        # Capture response data for API endpoints
-        if "/api/" in request.url.path and response.status_code == 200:
-            if hasattr(response, 'body'):
-                try:
-                    body_bytes = b""
-                    async for chunk in response.body_iterator:
-                        body_bytes += chunk
-                    
-                    if body_bytes:
-                        response_data = json.loads(body_bytes.decode())
-                    
-                    # Recreate response with the consumed body
-                    response = Response(
-                        content=body_bytes,
-                        status_code=response.status_code,
-                        headers=dict(response.headers),
-                        media_type=response.media_type
-                    )
-                except:
-                    response_data = {"response": "Unable to parse response"}
+        # Don't capture response body - it's slow and blocks the response
+        # Discord logging doesn't need the full response anyway
+        response_data = None
         
     except Exception as e:
         status_code = 500

@@ -15,9 +15,33 @@ class PromptTemplateApp {
     
     init() {
         this.setupEventListeners();
+        this.checkBackendHealth(); // Check if backend is ready
         this.loadQuickTopics();
         this.loadQuotaInfo();
         this.setDefaultTopic();
+    }
+    
+    async checkBackendHealth() {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
+            
+            const response = await fetch('/api/health', {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeout);
+            
+            if (response.ok) {
+                console.log('Backend is healthy and ready');
+            } else {
+                console.warn('Backend health check failed');
+                this.showToast('Backend service may be starting up. Please wait...', 'warning');
+            }
+        } catch (error) {
+            console.error('Backend health check error:', error);
+            this.showToast('Connecting to backend... Please wait a moment.', 'warning');
+        }
     }
     
     setupEventListeners() {
@@ -63,7 +87,9 @@ class PromptTemplateApp {
     
     async setDefaultTopic() {
         document.getElementById('topicInput').value = 'Prompt Engineering';
-        await this.generatePrompt();
+        // Don't auto-generate on page load to avoid cold start issues on free tier hosting
+        // User can click "Generate Prompt" button when ready
+        // await this.generatePrompt();
     }
     
     async loadQuickTopics() {
@@ -97,7 +123,15 @@ class PromptTemplateApp {
     
     async loadQuotaInfo() {
         try {
-            const response = await fetch('/api/quotas');
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
+            const response = await fetch('/api/quotas', {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeout);
+            
             const data = await response.json();
             
             if (data.success) {
@@ -105,6 +139,7 @@ class PromptTemplateApp {
             }
         } catch (error) {
             console.error('Error loading quota info:', error);
+            // Don't show error toast for quota loading failure
         }
     }
     
@@ -156,11 +191,22 @@ class PromptTemplateApp {
         this.showLoading('Generating dynamic prompt template...');
         
         try {
+            // Add timeout to prevent infinite loading
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            
             const response = await fetch('/api/generate-prompt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic })
+                body: JSON.stringify({ topic }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeout);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const data = await response.json();
             
@@ -174,7 +220,11 @@ class PromptTemplateApp {
             }
         } catch (error) {
             console.error('Error generating prompt:', error);
-            this.showToast('Error generating prompt', 'error');
+            if (error.name === 'AbortError') {
+                this.showToast('Request timed out. Please try again.', 'error');
+            } else {
+                this.showToast(`Error: ${error.message}`, 'error');
+            }
         } finally {
             this.hideLoading();
         }
@@ -285,6 +335,9 @@ class PromptTemplateApp {
         this.showLoading('Querying Gemini AI...');
         
         try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for AI
+            
             const response = await fetch('/api/gemini/query', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -292,8 +345,15 @@ class PromptTemplateApp {
                     topic: this.currentTopic,
                     prompt: this.currentPrompt,
                     api_key: this.apiKeys.gemini || null
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeout);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const data = await response.json();
             
@@ -306,7 +366,11 @@ class PromptTemplateApp {
             }
         } catch (error) {
             console.error('Error querying Gemini:', error);
-            this.showToast('Error querying Gemini', 'error');
+            if (error.name === 'AbortError') {
+                this.showToast('Request timed out. Please try again.', 'error');
+            } else {
+                this.showToast(`Error: ${error.message}`, 'error');
+            }
         } finally {
             this.hideLoading();
         }
@@ -353,6 +417,9 @@ class PromptTemplateApp {
         this.showLoading('Searching YouTube videos...');
         
         try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+            
             const response = await fetch('/api/youtube/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -360,8 +427,15 @@ class PromptTemplateApp {
                     topic: this.currentTopic,
                     api_key: this.apiKeys.youtube || null,
                     max_results: 60
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeout);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const data = await response.json();
             
@@ -376,7 +450,11 @@ class PromptTemplateApp {
             }
         } catch (error) {
             console.error('Error searching YouTube:', error);
-            this.showToast('Error searching YouTube', 'error');
+            if (error.name === 'AbortError') {
+                this.showToast('Request timed out. Please try again.', 'error');
+            } else {
+                this.showToast(`Error: ${error.message}`, 'error');
+            }
         } finally {
             this.hideLoading();
         }
